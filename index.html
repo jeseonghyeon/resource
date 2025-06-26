@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>미국 빅테크 AI 전략 분석</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals & Muted Blue -->
+    <!-- Application Structure Plan: A multi-section, thematic single-page application. The structure starts with a high-level market overview (Investments, Analyst Ratings), then moves to a detailed, interactive "Company Deep Dive" using a tabbed interface for easy comparison. This is followed by sections on the "Competitive Landscape" (Partnerships, Battlegrounds) and "Ethical & Regulatory Horizon". The flow is designed to guide the user from a broad understanding to specific details and finally to future implications, making the dense report content highly explorable and digestible. This non-linear, topic-driven structure was chosen for superior usability over a simple document scroll. -->
+    <!-- Visualization & Content Choices: 
+        - AI Investments (Table 1) -> Goal: Compare -> Horizontal Bar Chart (Chart.js) -> Interaction: Tooltips. Justification: Best for comparing large numbers with clear labels.
+        - Analyst Ratings (Table 3) -> Goal: Compare -> Combined Bar Chart (Chart.js) for upside potential and styled text for consensus. Justification: Visually connects qualitative ratings with quantitative potential.
+        - Company Strategies (Text/Table 2) -> Goal: Inform/Compare -> Tabbed Interface (JS) -> Interaction: Click tabs. Justification: Organizes vast amounts of company-specific data cleanly, enabling direct comparison without overwhelming the user.
+        - Partnerships -> Goal: Organize/Relate -> HTML/CSS Diagram -> Interaction: Hover effects. Justification: Visually maps the "co-opetition" network simply and effectively without external libraries.
+        - Responsible AI Principles (Table 4) -> Goal: Compare -> Accordion List (JS) -> Interaction: Click to expand. Justification: Condenses detailed information into a manageable, user-driven format.
+        All choices adhere to the NO SVG/Mermaid constraint. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #F8F5F2; /* Light Beige */
+            color: #333333;
+        }
+        .bg-accent { background-color: #A8D0E6; } /* Muted Blue */
+        .text-accent { color: #A8D0E6; }
+        .border-accent { border-color: #A8D0E6; }
+        .bg-secondary { background-color: #FFFFFF; }
+        .bg-card { background-color: #FFFFFF; }
+        .text-dark { color: #2C3E50; }
+        .text-light { color: #5D6D7E; }
+        .nav-btn {
+            transition: all 0.3s ease;
+        }
+        .nav-btn.active {
+            background-color: #A8D0E6;
+            color: #FFFFFF;
+            font-weight: 700;
+        }
+        .nav-btn:not(.active):hover {
+            background-color: #EAF2F8;
+        }
+        .company-tab.active {
+            border-color: #A8D0E6;
+            background-color: #A8D0E6;
+            color: white;
+        }
+        .company-tab:not(.active) {
+            border-color: #E0E0E0;
+            background-color: #F8F9F9;
+        }
+        .company-tab {
+            transition: all 0.3s ease;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 640px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        @media (min-width: 1024px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-secondary shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <h1 class="text-xl sm:text-2xl font-bold text-dark">빅테크 AI 전략 분석</h1>
+                <nav id="navbar" class="hidden md:flex space-x-1">
+                    <button data-target="overview" class="nav-btn px-3 py-2 rounded-md text-sm font-medium active">시장 개요</button>
+                    <button data-target="players" class="nav-btn px-3 py-2 rounded-md text-sm font-medium">기업별 심층 분석</button>
+                    <button data-target="arena" class="nav-btn px-3 py-2 rounded-md text-sm font-medium">경쟁 구도</button>
+                    <button data-target="ethics" class="nav-btn px-3 py-2 rounded-md text-sm font-medium">윤리 및 규제</button>
+                    <button data-target="future" class="nav-btn px-3 py-2 rounded-md text-sm font-medium">미래 전망</button>
+                </nav>
+            </div>
+             <div class="md:hidden pb-4">
+                <select id="mobile-nav" class="w-full p-2 border rounded-md bg-white">
+                    <option value="overview">시장 개요</option>
+                    <option value="players">기업별 심층 분석</option>
+                    <option value="arena">경쟁 구도</option>
+                    <option value="ethics">윤리 및 규제</option>
+                    <option value="future">미래 전망</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- 1. 시장 개요 Section -->
+        <section id="overview" class="content-section active space-y-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-dark mb-2">AI 혁명, 거인들의 전쟁</h2>
+                <p class="text-light max-w-3xl mx-auto">
+                    미국 빅테크 기업들은 AI를 단순한 기술이 아닌, 기업의 미래를 좌우할 핵심 전략으로 삼고 전례 없는 투자를 단행하고 있습니다. 이 섹션에서는 AI 인프라 구축을 위한 막대한 자본 투자와, 이러한 전략에 대한 금융 시장의 평가를 살펴봄으로써 AI 경쟁의 거대한 스케일을 조망합니다.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-card p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-bold text-dark mb-4">AI 인프라 투자 경쟁 (2025 회계연도)</h3>
+                    <p class="text-light mb-4 text-sm">주요 기업들은 AI 패권 확보를 위해 수백억 달러를 데이터 센터와 AI 연구에 쏟아붓고 있습니다. 이는 단기 수익성을 희생하더라도 미래 시장 지배력을 확보하려는 강력한 의지를 보여줍니다.</p>
+                    <div class="chart-container h-96">
+                        <canvas id="investmentChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-card p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-bold text-dark mb-4">월스트리트의 시각: 애널리스트 평가</h3>
+                    <p class="text-light mb-4 text-sm">AI 전략에 대한 시장의 기대감을 보여주는 애널리스트들의 컨센서스와 목표 주가 상승 잠재력입니다. 특히 AI 칩을 독점하는 엔비디아에 대한 기대가 높습니다.</p>
+                    <div class="chart-container h-96">
+                        <canvas id="analystChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 기업별 심층 분석 Section -->
+        <section id="players" class="content-section space-y-8">
+             <div class="text-center">
+                <h2 class="text-3xl font-bold text-dark mb-2">The Players: 7개 기업, 7가지 전략</h2>
+                <p class="text-light max-w-3xl mx-auto">
+                    AI 경쟁의 최전선에 있는 7개 기업의 고유한 전략, 핵심 제품, 그리고 시장에서의 독특한 위치를 심층 분석합니다. 아래 탭을 클릭하여 각 기업의 AI 접근 방식을 자세히 살펴보세요. 각 기업이 어떻게 자신만의 강점을 활용하여 AI 시대를 준비하는지 비교해볼 수 있습니다.
+                </p>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-2 sm:gap-4 mb-6" id="company-selector">
+            </div>
+
+            <div id="company-details" class="bg-card p-6 sm:p-8 rounded-lg shadow-lg transition-opacity duration-500">
+            </div>
+        </section>
+
+        <!-- 3. 경쟁 구도 Section -->
+        <section id="arena" class="content-section space-y-8">
+             <div class="text-center">
+                <h2 class="text-3xl font-bold text-dark mb-2">The Arena: 협력과 경쟁의 역학</h2>
+                <p class="text-light max-w-3xl mx-auto">
+                    AI 산업은 단순한 경쟁을 넘어, 어제의 적이 오늘의 동지가 되는 복잡한 '코피티션(Co-opetition)' 관계가 특징입니다. 이 섹션에서는 주요 기업들 간의 전략적 파트너십과 AI 기술이 격돌하는 핵심 전장을 시각적으로 분석하여 경쟁의 역학 관계를 파헤칩니다.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-card p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-bold text-dark mb-4">전략적 동맹: AI 파트너십 네트워크</h3>
+                    <div class="space-y-4 text-sm">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded">Microsoft</span>
+                            <span class="text-gray-500">↔</span>
+                            <span class="font-bold bg-green-100 text-green-800 px-2 py-1 rounded">OpenAI</span>
+                            <p class="text-light ml-2">($13B+ 투자, Azure 독점 컴퓨팅 제공)</p>
+                        </div>
+                         <div class="flex items-center space-x-2">
+                            <span class="font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded">Microsoft</span>
+                            <span class="text-gray-500">↔</span>
+                            <span class="font-bold bg-purple-100 text-purple-800 px-2 py-1 rounded">Anthropic</span>
+                            <p class="text-light ml-2">(Azure를 통해 모델 제공)</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold bg-orange-100 text-orange-800 px-2 py-1 rounded">Amazon</span>
+                            <span class="text-gray-500">↔</span>
+                            <span class="font-bold bg-purple-100 text-purple-800 px-2 py-1 rounded">Anthropic</span>
+                            <p class="text-light ml-2">($4B 투자, AWS 주요 파트너)</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold bg-red-100 text-red-800 px-2 py-1 rounded">Google</span>
+                            <span class="text-gray-500">↔</span>
+                            <span class="font-bold bg-purple-100 text-purple-800 px-2 py-1 rounded">Anthropic</span>
+                            <p class="text-light ml-2">($2B 투자, Google Cloud 파트너)</p>
+                        </div>
+                         <div class="flex items-center space-x-2">
+                            <span class="font-bold bg-green-100 text-green-800 px-2 py-1 rounded">OpenAI</span>
+                            <span class="text-gray-500">↔</span>
+                            <span class="font-bold bg-red-100 text-red-800 px-2 py-1 rounded">Google</span>
+                            <p class="text-light ml-2">(경쟁에도 불구, 모델 훈련에 Google Cloud 활용)</p>
+                        </div>
+                         <div class="flex items-center space-x-2">
+                            <span class="font-bold bg-gray-200 text-gray-800 px-2 py-1 rounded">Apple</span>
+                            <span class="text-gray-500">↔</span>
+                            <span class="font-bold bg-green-100 text-green-800 px-2 py-1 rounded">OpenAI</span>
+                            <p class="text-light ml-2">(Apple Intelligence에 ChatGPT 통합)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-card p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-bold text-dark mb-4">핵심 전장: AI 패권은 어디에서 결정되는가?</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <h4 class="font-semibold text-dark">클라우드 AI 플랫폼</h4>
+                            <p class="text-sm text-light">기업 고객을 위한 AI 모델 및 인프라 제공</p>
+                            <p class="text-sm font-medium">주요 플레이어: <span class="text-orange-500">Amazon (AWS)</span>, <span class="text-blue-500">Microsoft (Azure)</span>, <span class="text-red-500">Google (GCP)</span></p>
+                        </div>
+                        <div class="border-t pt-3">
+                            <h4 class="font-semibold text-dark">기초 모델 개발 (LLM)</h4>
+                            <p class="text-sm text-light">가장 강력하고 범용적인 AI 두뇌 개발 경쟁</p>
+                            <p class="text-sm font-medium">주요 플레이어: <span class="text-green-500">OpenAI (GPT)</span>, <span class="text-red-500">Google (Gemini)</span>, <span class="text-purple-500">Anthropic (Claude)</span>, <span class="text-indigo-500">Meta (Llama)</span></p>
+                        </div>
+                        <div class="border-t pt-3">
+                            <h4 class="font-semibold text-dark">AI 칩 & 하드웨어</h4>
+                            <p class="text-sm text-light">AI 연산을 가능하게 하는 반도체 인프라</p>
+                            <p class="text-sm font-medium">주요 플레이어: <span class="text-teal-500">Nvidia (독점적 지위)</span>, <span class="text-gray-500">Apple (자체 설계)</span>, <span class="text-red-500">Google (TPU)</span></p>
+                        </div>
+                        <div class="border-t pt-3">
+                            <h4 class="font-semibold text-dark">소비자 AI 애플리케이션</h4>
+                            <p class="text-sm text-light">일상 속 AI 비서, 검색, 창작 도구</p>
+                            <p class="text-sm font-medium">주요 플레이어: <span class="text-gray-500">Apple (Siri)</span>, <span class="text-red-500">Google (Search)</span>, <span class="text-blue-500">Microsoft (Copilot)</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 윤리 및 규제 Section -->
+        <section id="ethics" class="content-section space-y-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-dark mb-2">The Rules of the Game: 윤리와 규제의 경계</h2>
+                <p class="text-light max-w-3xl mx-auto">
+                    AI의 급격한 발전은 편향, 프라이버시, 투명성 등 복잡한 윤리적 질문을 던집니다. 동시에 각국 정부는 AI 기술을 규제하기 위한 법적 프레임워크를 모색하고 있습니다. 이 섹션에서는 빅테크 기업들의 '책임 있는 AI' 원칙과 현재 진행 중인 규제 동향을 살펴봅니다.
+                </p>
+            </div>
+            <div class="bg-card p-6 rounded-lg shadow">
+                <h3 class="text-xl font-bold text-dark mb-4">기업별 책임 있는 AI 원칙 비교</h3>
+                <div id="ethics-accordion" class="space-y-2">
+                </div>
+            </div>
+        </section>
+        
+        <!-- 5. 미래 전망 Section -->
+        <section id="future" class="content-section space-y-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-dark mb-2">The Road Ahead: AI의 미래와 우리의 역할</h2>
+                <p class="text-light max-w-3xl mx-auto">
+                    AI는 단순한 기술을 넘어 우리 사회와 경제, 노동의 미래를 재편하고 있습니다. 이 마지막 섹션에서는 AI 기술의 미래 동향을 예측하고, '슈퍼에이전시'와 같은 새로운 개념을 탐구하며, 기업과 투자자, 정책 입안자를 위한 전략적 권장 사항을 제시합니다.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-card p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-bold text-dark mb-2">미래 AI 핵심 역량</h3>
+                    <ul class="list-disc list-inside text-light space-y-1 text-sm">
+                        <li><b>에이전트형 AI:</b> 자율적으로 계획하고 실행하는 시스템</li>
+                        <li><b>멀티모달리티:</b> 텍스트, 이미지, 소리를 동시에 이해</li>
+                        <li><b>향상된 추론:</b> 더 복잡한 문제 해결 능력</li>
+                        <li><b>투명성 증가:</b> '블랙박스' 문제 해결 노력</li>
+                    </ul>
+                </div>
+                <div class="bg-card p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-bold text-dark mb-2">사회경제적 변화</h3>
+                    <ul class="list-disc list-inside text-light space-y-1 text-sm">
+                        <li><b>노동 시장의 재편:</b> 단순 반복 업무 자동화 가속</li>
+                        <li><b>'슈퍼에이전시' 등장:</b> AI로 역량이 극대화된 개인</li>
+                        <li><b>기술 장벽 감소:</b> 누구나 전문가 수준의 기술 활용 가능</li>
+                        <li><b>경제적 불평등 심화 우려</b></li>
+                    </ul>
+                </div>
+                <div class="bg-card p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-bold text-dark mb-2">빅테크의 과제와 기회</h3>
+                    <ul class="list-disc list-inside text-light space-y-1 text-sm">
+                        <li><b>과제:</b> 치열한 경쟁, 막대한 투자 비용, 규제 강화</li>
+                        <li><b>기회:</b> 새로운 AI 서비스 시장 창출, 산업 혁신 주도</li>
+                        <li><b>핵심:</b> 수익성 증명과 윤리적 책임의 균형</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="bg-card p-6 rounded-lg shadow">
+                 <h3 class="text-xl font-bold text-dark mb-4">전략적 권고 사항</h3>
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <h4 class="font-semibold text-dark">기업 (Non-Big Tech)</h4>
+                        <p class="text-sm text-light mt-1">처음부터 AI를 구축하려 하지 말고, 빅테크의 클라우드 플랫폼을 활용하세요. 특화된 데이터와 도메인 지식으로 틈새 시장을 공략하는 것이 중요합니다.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-dark">투자자</h4>
+                        <p class="text-sm text-light mt-1">AI 경쟁은 장기전입니다. 하드웨어(엔비디아), 클라우드, 애플리케이션 등 가치 사슬 전반에 걸쳐 분산 투자하고, 규제 동향을 면밀히 주시하세요.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-dark">정책 입안자</h4>
+                        <p class="text-sm text-light mt-1">혁신과 안전의 균형을 맞추는 일관된 규제를 마련하고, 공정한 경쟁 환경을 조성하며, AI 시대에 맞는 인력 재교육 프로그램에 투자해야 합니다.</p>
+                    </div>
+                 </div>
+            </div>
+        </section>
+    </main>
+<script>
+const investmentData = {
+    labels: ['아마존', '마이크로소프트', '알파벳(구글)', '메타'],
+    datasets: [{
+        label: '2025 회계연도 AI/데이터센터 투자액 (십억 달러)',
+        data: [100, 80, 75, 68],
+        backgroundColor: [
+            'rgba(255, 159, 64, 0.7)',
+            'rgba(54, 162, 235, 0.7)',
+            'rgba(255, 99, 132, 0.7)',
+            'rgba(75, 192, 192, 0.7)',
+        ],
+        borderColor: [
+            'rgba(255, 159, 64, 1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 99, 132, 1)',
+            'rgba(75, 192, 192, 1)',
+        ],
+        borderWidth: 1
+    }]
+};
+
+const analystData = {
+    labels: ['엔비디아', '아마존', '애플', '메타', '알파벳(구글)'],
+    datasets: [{
+        label: '상승/하락 잠재력 (%)',
+        data: [17.10, 13.92, 13.30, 3.64, 0.00],
+        backgroundColor: [
+            'rgba(46, 204, 113, 0.7)',
+            'rgba(255, 159, 64, 0.7)',
+            'rgba(155, 89, 182, 0.7)',
+            'rgba(75, 192, 192, 0.7)',
+            'rgba(255, 99, 132, 0.7)',
+        ],
+        borderColor: [
+            'rgba(46, 204, 113, 1)',
+            'rgba(255, 159, 64, 1)',
+            'rgba(155, 89, 182, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(255, 99, 132, 1)',
+        ],
+        borderWidth: 1
+    }],
+    ratings: ['강력 매수', '시장수익률 상회', '보통 매수', '매수', '매수']
+};
+
+const companyData = {
+    google: {
+        name: '구글 (Alphabet)',
+        logo: 'GOOG',
+        color: 'bg-red-500',
+        strategy: "생태계 전반의 'AI-First' 전략",
+        description: "구글은 검색, 클라우드, 안드로이드 등 자사의 광대한 생태계 전반에 AI를 깊숙이 통합하고 있습니다. 멀티모달 모델 'Gemini'를 중심으로, 핵심 광고 사업을 방어하고 엔터프라이즈 AI 시장에서 새로운 성장을 모색하는 이중 전략을 구사합니다.",
+        products: ['Gemini (LLM)', 'Vertex AI (Cloud)', 'Google Search AI', 'AlphaFold (과학)'],
+        insight: {
+            title: "전략적 딜레마: 검색 제국의 방어",
+            text: "AI 챗봇의 등장은 구글의 핵심인 검색 광고 모델에 실존적 위협입니다. 구글의 막대한 AI 투자는 이러한 위협에 대한 방어막인 동시에, 클라우드 AI라는 새로운 기회를 잡기 위한 공격적인 베팅입니다."
+        }
+    },
+    microsoft: {
+        name: '마이크로소프트',
+        logo: 'MSFT',
+        color: 'bg-blue-500',
+        strategy: '엔터프라이즈 AI와 클라우드 통합',
+        description: "마이크로소프트는 OpenAI와의 전략적 파트너십을 통해 초기 AI 시장을 선점했습니다. Azure 클라우드와 Office 제품군에 AI(Copilot)를 결합하여 기업 고객의 생산성 향상에 집중하며, 엔터프라이즈 AI 시장의 최강자로 자리매김하고 있습니다.",
+        products: ['Azure AI', 'GitHub Copilot', 'Microsoft 365 Copilot', 'Sora (Azure)'],
+        insight: {
+            title: "위험 분산: 'OpenAI 너머'를 보다",
+            text: "OpenAI에 막대한 투자를 했음에도, MS는 Anthropic, Mistral 등 다른 AI 기업과의 파트너십을 확장하고 있습니다. 이는 단일 공급업체에 대한 의존도를 줄이고, 빠르게 변화하는 AI 시장에서 유연성을 확보하려는 전략적 움직임입니다."
+        }
+    },
+    amazon: {
+        name: '아마존',
+        logo: 'AMZN',
+        color: 'bg-orange-500',
+        strategy: '운영 효율성 극대화 및 클라우드 리더십',
+        description: "아마존은 AI를 자사의 거대한 물류 및 공급망 최적화에 적극 활용하고 있습니다. 로봇 공학, 수요 예측 등에서 AI를 통해 비용을 절감하는 한편, 클라우드 서비스 AWS를 통해 전 세계 기업들에게 가장 포괄적인 AI 인프라와 서비스를 제공하며 시장 1위 자리를 지키고 있습니다.",
+        products: ['Amazon Bedrock (Cloud)', 'Amazon Q (AI Assistant)', 'AI 기반 로보틱스 (Proteus)', 'AI 수요 예측'],
+        insight: {
+            title: "자동화의 두 얼굴: 효율성과 노동의 미래",
+            text: "아마존의 공격적인 로봇 공학 및 AI 투자는 연간 100억 달러의 비용 절감 효과를 가져올 것으로 기대됩니다. 하지만 이는 대규모 인력 감축과 맞물려, AI가 가져올 노동 시장의 변화와 그 사회적 영향에 대한 중요한 질문을 던집니다."
+        }
+    },
+    apple: {
+        name: '애플',
+        logo: 'AAPL',
+        color: 'bg-gray-500',
+        strategy: '프라이버시 중심의 개인화된 지능',
+        description: "애플은 'Apple Intelligence'를 통해 후발주자로서 AI 경쟁에 뛰어들었습니다. 경쟁사와 달리, 사용자 데이터를 수집하지 않는 '온디바이스 AI'와 'Private Cloud Compute'를 전면에 내세웁니다. 프라이버시를 핵심 차별점으로 삼아 자사의 강력한 기기 생태계 내에서 개인화된 AI 경험을 제공하는 데 집중합니다.",
+        products: ['Apple Intelligence', 'Siri 업그레이드', 'Genmoji', 'Private Cloud Compute'],
+        insight: {
+            title: "프라이버시라는 해자(Moat)",
+            text: "AI 경쟁에서 뒤처졌다는 평가를 받던 애플은 '프라이버시'를 전략적 무기로 전환했습니다. 데이터 수집이 핵심인 경쟁사 모델과 달리, 개인정보 보호를 최우선으로 하는 애플의 접근 방식은 규제가 강화되고 사용자 우려가 커지는 상황에서 강력한 경쟁 우위가 될 수 있습니다."
+        }
+    },
+    meta: {
+        name: '메타',
+        logo: 'META',
+        color: 'bg-indigo-500',
+        strategy: '미래 현실을 위한 기초 AI 연구',
+        description: "메타는 단기 수익보다는 메타버스라는 장기 비전 실현을 위한 기초 AI 연구에 막대한 자금을 투자하고 있습니다. 현실 세계를 이해하는 '세계 모델' 개발과 오픈소스 AI 모델 'Llama'를 통해 개방형 생태계를 구축하며 미래의 AGI(인공일반지능) 시대를 준비합니다.",
+        products: ['Llama (오픈소스 LLM)', 'V-JEPA (세계 모델)', 'Seamless Communication', 'Ray-Ban Meta Glasses'],
+        insight: {
+            title: "고위험, 고수익: 메타버스를 향한 긴 여정",
+            text: "메타의 Reality Labs 부문은 수백억 달러의 누적 손실을 기록하고 있지만, AI에 대한 투자는 멈추지 않고 있습니다. 이는 현재의 손실을 감수하더라도, AI 기반의 몰입형 현실(메타버스)이 차세대 컴퓨팅 플랫폼이 될 것이라는 강력한 믿음을 보여줍니다."
+        }
+    },
+    nvidia: {
+        name: '엔비디아',
+        logo: 'NVDA',
+        color: 'bg-teal-500',
+        strategy: 'AI 컴퓨팅의 중추',
+        description: "엔비디아는 AI 혁명의 '곡괭이와 삽'을 파는 기업입니다. GPU 칩 시장의 80% 이상을 장악하며 사실상 독점적인 지위를 누리고 있습니다. 하드웨어뿐만 아니라 CUDA 소프트웨어 플랫폼을 통해 강력한 생태계를 구축, AI 개발의 모든 단계에서 필수적인 파트너로 자리 잡았습니다.",
+        products: ['GPU (Blackwell, Hopper)', 'DGX (AI 슈퍼컴퓨터)', 'CUDA Platform', 'NVIDIA AI Enterprise'],
+        insight: {
+            title: "왕좌의 게임: AI 붐의 최대 수혜자",
+            text: "엔비디아의 성공은 특정 AI 모델이나 애플리케이션의 승패에 좌우되지 않습니다. AI 산업 전체가 성장하는 한, 엔비디아의 칩에 대한 수요는 계속될 것입니다. 이는 엔비디아를 AI 경쟁에서 가장 안정적이고 강력한 위치에 올려놓았습니다."
+        }
+    },
+    openai: {
+        name: 'OpenAI',
+        logo: 'AI',
+        color: 'bg-green-500',
+        strategy: '최첨단 AI 연구 및 상업화',
+        description: "ChatGPT로 생성형 AI 붐을 일으킨 장본인입니다. '안전한 AGI 개발'이라는 원대한 목표를 추구하며, 세계 최고 수준의 연구진을 바탕으로 가장 진보된 AI 모델을 개발하는 데 집중합니다. 막대한 연구개발 비용을 감당하기 위해 공격적인 상업화 전략을 병행하고 있습니다.",
+        products: ['GPT 시리즈 (LLM)', 'ChatGPT', 'DALL-E (이미지 생성)', 'Sora (영상 생성)'],
+        insight: {
+            title: "성장 우선주의: 수익보다 중요한 AGI 경쟁",
+            text: "OpenAI는 막대한 손실을 감수하면서도 수백억 달러의 투자를 유치하며 성장에 올인하고 있습니다. 이는 AGI 개발 경쟁이 '승자 독식'의 게임이며, 먼저 돌파구를 마련하는 기업이 시장을 지배할 것이라는 믿음에 기반한 고위험, 고수익 전략입니다."
+        }
+    }
+};
+
+const ethicsData = {
+    google: { name: '구글', principles: '사회적 이익, 편향 방지, 안전성, 책임성, 프라이버시 설계 원칙 등을 포함한 7가지 AI 원칙을 2018년 발표. 매년 책임 보고서 발행.' },
+    microsoft: { name: '마이크로소프트', principles: '공정성, 신뢰성 및 안전, 개인정보보호 및 보안, 포용성, 투명성, 책임성 등 6가지 핵심 가치 기반. 전사적 데이터 거버넌스 도구(Purview) 운영.' },
+    amazon: { name: '아마존', principles: 'EU의 AI 협약 서명. 공정성, 설명 가능성, 개인정보보호, 안전성, 제어 가능성, 정확성, 거버넌스, 투명성을 책임 있는 AI의 핵심으로 강조.' },
+    apple: { name: '애플', principles: '사용자 정보 보호가 최우선. 데이터 수집을 최소화하는 온디바이스 처리와 Private Cloud Compute 아키텍처를 통해 프라이버시를 설계의 핵심으로 삼음.' },
+    meta: { name: '메타', principles: "'Frontier AI Framework' 도입. AI 모델을 위험도에 따라 분류하고, 고위험 모델은 안전 조치가 확보될 때까지 개발을 중단하는 신중한 접근 방식 채택." },
+    nvidia: { name: '엔비디아', principles: '프라이버시 존중, 안전한 작동, 투명성, 책임성, 편향 회피를 강조. 모델의 잠재적 위험을 문서화하는 Model Card Generator, LLM 안전을 위한 NeMo Guardrails 등 도구 제공.' },
+    openai: { name: 'OpenAI', principles: '오용 방지를 위한 기술적 안전장치와 정책 시행. 인간 피드백 기반 강화학습(RLHF)을 통해 모델 출력을 윤리 기준에 맞춤. 레드팀 네트워크 운영.' }
+};
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const investmentCtx = document.getElementById('investmentChart').getContext('2d');
+    new Chart(investmentCtx, {
+        type: 'bar',
+        data: investmentData,
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ` ${context.raw}십억 달러`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '투자액 (십억 달러)'
+                    }
+                }
+            }
+        }
+    });
+
+    const analystCtx = document.getElementById('analystChart').getContext('2d');
+    new Chart(analystCtx, {
+        type: 'bar',
+        data: {
+            labels: analystData.labels,
+            datasets: analystData.datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = ` 상승 잠재력: ${context.raw}%`;
+                            return label;
+                        },
+                        afterLabel: function(context) {
+                            return `컨센서스: ${analystData.ratings[context.dataIndex]}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '상승 잠재력 (%)'
+                    }
+                }
+            }
+        }
+    });
+
+    const companySelector = document.getElementById('company-selector');
+    const companyDetails = document.getElementById('company-details');
+
+    Object.keys(companyData).forEach((key, index) => {
+        const company = companyData[key];
+        const button = document.createElement('button');
+        button.className = `company-tab text-sm sm:text-base font-semibold py-2 px-4 rounded-full border-2 ${index === 0 ? 'active' : ''}`;
+        button.dataset.company = key;
+        button.innerHTML = `<span class="w-4 h-4 rounded-full ${company.color} inline-block mr-2"></span>${company.name}`;
+        companySelector.appendChild(button);
+    });
+
+    function updateCompanyDetails(companyKey) {
+        const company = companyData[companyKey];
+        companyDetails.style.opacity = 0;
+        setTimeout(() => {
+            companyDetails.innerHTML = `
+                <div class="flex flex-col md:flex-row items-start gap-6">
+                    <div class="w-full md:w-1/3">
+                        <h3 class="text-2xl font-bold text-dark">${company.name}</h3>
+                        <p class="mt-1 font-semibold text-accent">${company.strategy}</p>
+                        <p class="mt-4 text-sm text-light">${company.description}</p>
+                    </div>
+                    <div class="w-full md:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-bold text-dark mb-2">주요 AI 제품/서비스</h4>
+                            <ul class="space-y-2">
+                                ${company.products.map(p => `<li class="flex items-center text-sm text-light"><span class="w-2 h-2 rounded-full ${company.color} mr-3"></span>${p}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-dark mb-2">핵심 인사이트</h4>
+                            <p class="text-sm font-semibold text-dark">${company.insight.title}</p>
+                            <p class="mt-1 text-xs text-light">${company.insight.text}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            companyDetails.style.opacity = 1;
+        }, 300);
+    }
+    
+    companySelector.addEventListener('click', (e) => {
+        const button = e.target.closest('.company-tab');
+        if (button) {
+            document.querySelectorAll('.company-tab').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            updateCompanyDetails(button.dataset.company);
+        }
+    });
+
+    updateCompanyDetails('google');
+
+    const ethicsAccordion = document.getElementById('ethics-accordion');
+    Object.values(ethicsData).forEach(item => {
+        const div = document.createElement('div');
+        div.innerHTML = `
+            <button class="w-full text-left p-4 bg-gray-50 hover:bg-gray-100 rounded-lg flex justify-between items-center transition">
+                <span class="font-semibold text-dark">${item.name}</span>
+                <span class="transform transition-transform text-accent font-bold text-xl">+</span>
+            </button>
+            <div class="hidden p-4 bg-white border-l-4 border-accent">
+                <p class="text-sm text-light">${item.principles}</p>
+            </div>
+        `;
+        ethicsAccordion.appendChild(div);
+    });
+
+    ethicsAccordion.addEventListener('click', (e) => {
+        const button = e.target.closest('button');
+        if(button) {
+            const content = button.nextElementSibling;
+            const icon = button.querySelector('span:last-child');
+            const isOpen = !content.classList.contains('hidden');
+
+            if (isOpen) {
+                content.classList.add('hidden');
+                icon.textContent = '+';
+                icon.classList.remove('rotate-45');
+            } else {
+                content.classList.remove('hidden');
+                icon.textContent = '−';
+                icon.classList.add('rotate-45');
+            }
+        }
+    });
+
+    const navBar = document.getElementById('navbar');
+    const mobileNav = document.getElementById('mobile-nav');
+    const sections = document.querySelectorAll('.content-section');
+    const navButtons = document.querySelectorAll('.nav-btn');
+
+    function switchSection(targetId) {
+        sections.forEach(section => {
+            section.classList.remove('active');
+            if (section.id === targetId) {
+                section.classList.add('active');
+            }
+        });
+        navButtons.forEach(btn => {
+            btn.classList.remove('active');
+            if(btn.dataset.target === targetId) {
+                btn.classList.add('active');
+            }
+        });
+        mobileNav.value = targetId;
+        window.scrollTo(0, 0);
+    }
+    
+    navBar.addEventListener('click', (e) => {
+        if(e.target.matches('.nav-btn')) {
+            switchSection(e.target.dataset.target);
+        }
+    });
+
+    mobileNav.addEventListener('change', (e) => {
+        switchSection(e.target.value);
+    });
+
+});
+</script>
+</body>
+</html>
